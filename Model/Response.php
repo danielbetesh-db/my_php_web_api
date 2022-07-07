@@ -34,6 +34,11 @@ class ResponseBase implements IResponse
 
 class ResponseJson extends ResponseBase{
 
+    public function __construct($success = false, $message = '', $data = [], $headers = null)
+    {
+        parent::__construct($success, $message, $data, $headers);
+    }
+
     public function result(){
         return json_encode(parent::result());
     }

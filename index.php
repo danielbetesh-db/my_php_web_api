@@ -4,17 +4,15 @@ require __DIR__ . "/inc/bootstrap.php";
 
 
 setCors();
+$uri = BaseController::getUriSegments();
 
-$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$uri = explode('/', $uri);
-
-if (!isset($uri[3])) {
+if (!isset($uri['action'])) {
     header("HTTP/1.1 404 Not Found");
     exit();
 }
 
-$controller_name = $uri[2];
-$action_name = $uri[3] . 'Action';
+$controller_name = $uri['controller'];
+$action_name = $uri['action'] . 'Action';
 
 switch ($controller_name){
     case 'account' :

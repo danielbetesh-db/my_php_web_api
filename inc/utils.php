@@ -23,3 +23,8 @@ function setCors(){
         exit(0);
     }
 }
+
+
+function getUri(){
+
+}

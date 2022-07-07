@@ -22,12 +22,21 @@ class BaseController
      *
      * @return array
      */
-    protected function getUriSegments()
+    public static function getUriSegments()
     {
+        $result = array();
         $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
         $uri = explode( '/', $uri );
-
-        return $uri;
+        if(isset($uri[2]) && $uri[2]){
+            $result['controller'] = $uri[2];
+        }
+        if(isset($uri[3]) && $uri[3]){
+            $result['action'] = $uri[3];
+        }
+        if(isset($uri[4]) && $uri[4]){
+            $result['get_id'] = $uri[4];
+        }
+        return $result;
     }
 
     /**
@@ -71,13 +80,19 @@ class BaseController
      * @param $inputs - The parameters you expect to get
      * @param $callback - model callback method
      */
-    protected function request($method, $inputs, $callback){
+    protected function request($method, $inputs_validation, $callback, $custome_inputs = null){
         $strErrorDesc = '';
         $requestMethod = strtoupper($_SERVER["REQUEST_METHOD"]);
 
         if ($requestMethod == $method) {
             try {
-                $responseData = call_user_func($callback, $this->validateJsonValues($inputs));
+
+                if($requestMethod ==  "GET"){
+                    $request = $custome_inputs;
+                }else{
+                    $request = $this->validateJsonValues($inputs_validation);
+                }
+                $responseData = call_user_func($callback, $request);
 
             } catch (Error $e) {
                 $strErrorDesc = $e->getMessage();
@@ -99,7 +114,7 @@ class BaseController
                     [
                         'validationMethod' => $method,
                         'requestedMethod' => $requestMethod,
-                        'inputs' => $inputs,
+                        'inputs_validation' => $inputs_validation,
                         'callback' => $callback
 
                     ],

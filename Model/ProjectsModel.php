@@ -6,34 +6,24 @@ class ProjectsModel
 {
     private static $table_name = 'Projects';
 
-    public static function login($request){
-        /**
-         * @var $Email
-         * @var $Password
-         */
-        extract($request);
-        $db = DataBase::getInstance();
-        $rows = $db->query("SELECT * FROM ".self::$table_name." WHERE email='$Email' AND password='$Password'")->numRows();
-        if($rows == 1){
-            return new ResponseJson(true, '', $db->fetchArray());
-        }else{
-            return new ResponseJson(false, 'Account not exist.', []);
-        }
-    }
 
     public static function readAllProjects($request){
         /**
-         * @var account_id
+         * @var $account_id
          */
         extract($request);
         $db = DataBase::getInstance();
-        $db->query('SELECT * FROM '.self::$table_name);
-        return new ResponseJson(true, '', $db->fetchAll());
+        $db->query("SELECT * FROM ".self::$table_name." WHERE account_id=".$account_id);
+        $message = $db->numRows() . ' rows';
+        $data = $db->fetchAll();
+        return new ResponseJson(true, $message, $data);
+
     }
 
 
     public static function createProject($request){
         /**
+         * @var $account_id
          * @var $project_name
          * @var $page_url
          * @var $response_page
@@ -46,9 +36,9 @@ class ProjectsModel
         if($rows == 0){
             $db->query("
                 INSERT INTO ".self::$table_name." 
-                    (project_name, page_url, response_page, error_page, emails) 
+                    (account_id, project_name, page_url, response_page, error_page, emails) 
                 VALUES 
-                    ('$project_name', '$page_url', '$response_page', '$error_page', '$emails')
+                    ('$account_id', '$project_name', '$page_url', '$response_page', '$error_page', '$emails')
                 ");
             return new ResponseJson(true, 'Project has been created.', ['affectedRows' => $db->affectedRows()]);
         }else{
