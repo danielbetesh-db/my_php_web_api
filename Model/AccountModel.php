@@ -1,49 +1,53 @@
 <?php
 
-require_once PROJECT_ROOT_PATH . "/Model/Database.php";
+require_once PROJECT_ROOT_PATH . "inc/class/DataBase.php";
 
 
-class AccountModel
+class AccountModel extends BaseModel
 {
-    private static $table_name = 'Accounts';
 
-    public static function login($request){
+
+    public function login($request){
         /**
-         * @var $Email
-         * @var $Password
+         * extract variables
+         *
+         * @var $email
+         * @var $password
          */
         extract($request);
-        $db = DataBase::getInstance();
-        $rows = $db->query("SELECT * FROM ".self::$table_name." WHERE email='$Email' AND password='$Password'")->numRows();
-        if($rows == 1){
-            return new ResponseJson(true, '', $db->fetchArray());
+        $db = DataBase::get_instance();
+        if($db->select_query(ACCOUNTS_TABLE_NAME, $request)->numRows() == 1){
+            return $this->success('', $db->fetchArray());
         }else{
-            return new ResponseJson(false, 'Account not exist.', []);
+            return $this->error('Account not exist.');
         }
     }
 
 
 
-    public static function createAccount($request){
+    public function createAccount($request){
         /**
-         * @var $FirstName
-         * @var $LastName
-         * @var $Email
-         * @var $Password
+         * extract variables
+         *
+         * @var $first_name
+         * @var $last_name
+         * @var $email
+         * @var $password
          */
         extract($request);
-        $db = DataBase::getInstance();
-        $rows = $db->query("SELECT * FROM ".self::$table_name." WHERE email='$Email'")->numRows();
+        $db = DataBase::get_instance();
+        $rows = $db->select_query(ACCOUNTS_TABLE_NAME, ['email' => $email])->numRows();
         if($rows == 0){
-            $db->query("
-                INSERT INTO ".self::$table_name." 
-                    (first_name, last_name, email, password) 
-                VALUES 
-                    ('$FirstName', '$LastName', '$Email', '$Password')
-                ");
-            return new ResponseJson(true, '', []);
+            $db->insert_query(ACCOUNTS_TABLE_NAME, $request);
+
+            if($db->affectedRows() == 1){
+                return $this->success("Account ($email) has been created.");
+            }else{
+                return $this->error('SQL error', $db->lastQuery());
+            }
+
         }else{
-            return new ResponseJson(false, 'Email already exist', []);
+            return $this->error('Email already exist.');
         }
     }
 

@@ -1,14 +1,15 @@
 <?php
-class DataBase {
+class DataBase extends Singleton {
 
     protected $connection;
     protected $query;
+    protected $statment;
     protected $show_errors = TRUE;
     protected $query_closed = TRUE;
     public $query_count = 0;
-    private static $instances = [];
 
-    private function __construct($charset = 'utf8') {
+
+    public function __construct($charset = 'utf8') {
         $this->connection = new mysqli(DB_HOST, DB_USERNAME, DB_PASSWORD, DB_DATABASE_NAME);
         if ($this->connection->connect_error) {
             $this->error('Failed to connect to MySQL - ' . $this->connection->connect_error);
@@ -16,16 +17,47 @@ class DataBase {
         $this->connection->set_charset($charset);
     }
 
-    public static function getInstance(){
-        $cls = static::class;
-        if (!isset(self::$instances[$cls])) {
-            self::$instances[$cls] = new static();
-        }
-
-        return self::$instances[$cls];
+    public function delete_query($table, $kv = null, $sep = 'AND')
+    {
+        return $this->query("DELETE FROM $table" . ($kv != null ? $this->kv_query($kv, 'WHERE', $sep) : ''));
     }
 
+    public function update_query($table, $set, $where, $sep = 'AND')
+    {
+        return $this->query("UPDATE $table ". $this->kv_query($set, 'SET', ',') . $this->kv_query($where, 'WHERE', $sep));
+    }
+
+    public function insert_query($table, $kv){
+        $cv = $this->split_kv_array($kv);
+        $columns = implode(",", $cv[0]);
+        $values = implode("','",$cv[1]);
+
+        return $this->query("INSERT INTO ".$table." ($columns) VALUES ('$values')");
+    }
+
+    public function select_query($table, $where = null, $sep = 'AND'){
+        $w = $where ? $this->kv_query($where,'WHERE', $sep) : '';
+        return $this->query("SELECT * FROM ".$table.$w);
+    }
+
+
+    private function kv_query($kv, $prefix, $sep){
+        $cv = $this->split_kv_array($kv);
+        $result = array();
+        for($i = 0; $i < count($cv[0]); $i++){
+            $result[] = $cv[0][$i] . "='".$cv[1][$i]."'";
+        }
+        return " $prefix ".implode(' '.$sep.' ', $result);
+    }
+
+
+    private function split_kv_array($kv){
+        return [array_keys($kv), array_values($kv)];
+    }
+
+
     public function query($query) {
+        $this->statment = $query;
         if (!$this->query_closed) {
             $this->query->close();
         }
@@ -109,6 +141,10 @@ class DataBase {
 
     public function close() {
         return $this->connection->close();
+    }
+
+    public function lastQuery(){
+        return $this->statment;
     }
 
     public function numRows() {

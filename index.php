@@ -1,32 +1,20 @@
 <?php
 
+
 require __DIR__ . "/inc/bootstrap.php";
 
 
+
+
+$request = Request::get_instance();
+
 setCors();
-$uri = BaseController::getUriSegments();
 
-if (!isset($uri['action'])) {
-    header("HTTP/1.1 404 Not Found");
-    exit();
+
+if (!$request->is_valid_uri()) {
+
+    Response::error('Uri is not valid')->send_output();
 }
 
-$controller_name = $uri['controller'];
-$action_name = $uri['action'] . 'Action';
-
-switch ($controller_name){
-    case 'account' :
-        require PROJECT_ROOT_PATH . "/Controller/Api/AccountController.php";
-        $objFeedController = new AccountController();
-        break;
-    case 'projects' :
-        require PROJECT_ROOT_PATH . "/Controller/Api/ProjectsController.php";
-        $objFeedController = new ProjectsController();
-        break;
-    default:
-        header("HTTP/1.1 404 Not Found");
-        exit();
-        break;
-}
-
-$objFeedController->{$action_name}();
+$factory = new ControllerFactory($request);
+$factory->instance()->{ UriAction::get() . 'Action' }();
