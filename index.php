@@ -1,10 +1,6 @@
 <?php
 
-
-require __DIR__ . "/inc/bootstrap.php";
-
-
-
+require __DIR__ . "/App/inc/bootstrap.php";
 
 $request = Request::get_instance();
 
@@ -18,3 +14,4 @@ if (!$request->is_valid_uri()) {
 
 $factory = new ControllerFactory($request);
 $factory->instance()->{ UriAction::get() . 'Action' }();
+
