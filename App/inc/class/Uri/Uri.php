@@ -9,7 +9,7 @@ abstract class Uri {
 
     protected static $uri;
 
-    public static function get()
+    public static function get($append = '')
     {
         if (!self::$uri) {
             self::$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);

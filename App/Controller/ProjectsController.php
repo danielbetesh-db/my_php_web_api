@@ -7,9 +7,8 @@ class ProjectsController extends BaseController
 
     private $model;
     public function __construct(Request $request)
-    {
+    {   parent::__construct($request);
         $this->model = new ProjectsModel();
-        parent::__construct($request);
     }
 
     public function createProjectAction()
